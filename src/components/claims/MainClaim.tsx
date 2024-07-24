@@ -1,0 +1,108 @@
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { AppState } from '../../store/store';
+import { Installment } from '../../types';
+
+const MainClaim: React.FC = () => {
+  const basicResults = useSelector((state: AppState) => state.calculator.results) as Installment[];
+  const mainClaimResults = useSelector((state: AppState) => state.calculator.mainClaimResults) as Installment[];
+
+  const [totalInterestBasic, setTotalInterestBasic] = useState(0);
+  const [totalInterestMainClaim, setTotalInterestMainClaim] = useState(0);
+  const [futureInterestBasic, setFutureInterestBasic] = useState(0);
+  const [futureInterestMainClaim, setFutureInterestMainClaim] = useState(0);
+  const [borrowerBenefit, setBorrowerBenefit] = useState(0);
+  const [unknownWiborDate, setUnknownWiborDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    // Calculate total interest for Basic Loan
+    const totalInterestBasicCalc = basicResults.reduce((acc, installment) => acc + installment.interest, 0);
+    setTotalInterestBasic(totalInterestBasicCalc);
+
+    // Calculate total interest for Main Claim
+    const totalInterestMainClaimCalc = mainClaimResults.reduce((acc, installment) => acc + installment.interest, 0);
+    setTotalInterestMainClaim(totalInterestMainClaimCalc);
+
+    // Find the date from which WIBOR is unknown in Basic Loan
+    const wiborOccurrences: { [key: string]: number } = {};
+    for (const installment of basicResults) {
+      const rateKey = installment.wiborRate.toFixed(2);
+      if (!wiborOccurrences[rateKey]) {
+        wiborOccurrences[rateKey] = 0;
+      }
+      wiborOccurrences[rateKey] += 1;
+
+      if (wiborOccurrences[rateKey] > 6) {
+        setUnknownWiborDate(installment.date);
+        break;
+      }
+    }
+
+    // Calculate future interest from the date WIBOR is unknown in Basic Loan
+    const futureInterestBasicCalc = basicResults.reduce((acc, installment) => {
+      if (unknownWiborDate && new Date(installment.date) >= new Date(unknownWiborDate)) {
+        return acc + installment.interest;
+      }
+      return acc;
+    }, 0);
+    setFutureInterestBasic(futureInterestBasicCalc);
+
+    // Calculate future interest from the date WIBOR is unknown in Main Claim
+    const futureInterestMainClaimCalc = mainClaimResults.reduce((acc, installment) => {
+      if (unknownWiborDate && new Date(installment.date) >= new Date(unknownWiborDate)) {
+        return acc + installment.interest;
+      }
+      return acc;
+    }, 0);
+    setFutureInterestMainClaim(futureInterestMainClaimCalc);
+
+    // Calculate borrower benefit
+    const borrowerBenefitCalc = totalInterestBasicCalc - totalInterestMainClaimCalc;
+    setBorrowerBenefit(borrowerBenefitCalc);
+  }, [basicResults, mainClaimResults, unknownWiborDate]);
+
+  const formatNumber = (number: number | undefined): string => {
+    if (number === undefined) {
+      return '0,00';
+    }
+    return number.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  return (
+    <div className="container mx-auto p-4">
+      <div className="calculation-results mt-8">
+        <h2 className="text-xl font-bold mb-4">Wyniki obliczeń Main Claim</h2>
+        <div className="overflow-auto">
+          <table className="min-w-full bg-white border border-gray-300">
+            <thead className="bg-gray-200">
+              <tr>
+                <th className="py-2 px-4 border">Opis</th>
+                <th className="py-2 px-4 border">Wartość (zł)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr className="bg-gray-50">
+                <td className="py-2 px-4 border">Suma odsetek (Basic Loan)</td>
+                <td className="py-2 px-4 border text-right">{formatNumber(totalInterestBasic)}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-4 border">Zwrot do Klienta zapłaconych odsetek (Main Claim)</td>
+                <td className="py-2 px-4 border text-right">{formatNumber(totalInterestMainClaim)}</td>
+              </tr>
+              <tr className="bg-gray-50">
+                <td className="py-2 px-4 border">Wartość anulowanych odsetek na przyszłość</td>
+                <td className="py-2 px-4 border text-right">{formatNumber(futureInterestBasic - futureInterestMainClaim)}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-4 border">Korzyść Kredytobiorcy</td>
+                <td className="py-2 px-4 border text-right">{formatNumber(totalInterestBasic)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MainClaim;
