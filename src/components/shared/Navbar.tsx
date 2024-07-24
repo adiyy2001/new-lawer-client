@@ -63,7 +63,7 @@ const Navbar: React.FC = () => {
             </motion.div>
             {dropdownOpen && (
               <div className="absolute left-0 top-full w-48 bg-white rounded-md shadow-lg z-20">
-                <div
+                {/* <div
                   onClick={() => handleLinkClick('/basic-calculations')}
                   onKeyDown={(e: any) => handleKeyDown(e, '/basic-calculations')}
                   tabIndex={0}
@@ -71,7 +71,7 @@ const Navbar: React.FC = () => {
                   className="block px-4 py-2 text-gray-800 hover:bg-gray-200 cursor-pointer"
                 >
                   Podstawowe obliczenia
-                </div>
+                </div> */}
                 <div
                   onClick={() => handleLinkClick('/main-claim')}
                   onKeyDown={(e: any) => handleKeyDown(e, '/main-claim')}
