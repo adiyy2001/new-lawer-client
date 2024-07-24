@@ -101,38 +101,7 @@ const Navbar: React.FC = () => {
                   Drugie roszczenie
                 </div>
 
-                {/*  */}
-              
-              
-                <div
-                  onClick={() => handleLinkClick('/main-claim-result')}
-                  onKeyDown={(e: any) => handleKeyDown(e, '/main-claim-result')}
-                  tabIndex={0}
-                  role="button"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-200 cursor-pointer"
-                >
-                  Główne roszczenie podsumowanie
-                </div>
-
-                <div
-                  onClick={() => handleLinkClick('/first-claim-result')}
-                  onKeyDown={(e: any) => handleKeyDown(e, '/first-claim-result')}
-                  tabIndex={0}
-                  role="button"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-200 cursor-pointer"
-                >
-                  Pierwsze roszczenie podsumowanie
-                </div>
-
-                <div
-                  onClick={() => handleLinkClick('/second-claim-result')}
-                  onKeyDown={(e: any) => handleKeyDown(e, '/second-claim-result')}
-                  tabIndex={0}
-                  role="button"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-200 cursor-pointer"
-                >
-                  Drguie roszczenie podsumowanie
-                </div>
+ 
               </div>
             )}
           </div>
