@@ -11,7 +11,7 @@ const MainClaim: React.FC = () => {
   const [totalInterestMainClaim, setTotalInterestMainClaim] = useState(0);
   const [futureInterestBasic, setFutureInterestBasic] = useState(0);
   const [futureInterestMainClaim, setFutureInterestMainClaim] = useState(0);
-  const [borrowerBenefit, setBorrowerBenefit] = useState(0);
+  const [_borrowerBenefit, setBorrowerBenefit] = useState(0);
   const [unknownWiborDate, setUnknownWiborDate] = useState<Date | null>(null);
 
   useEffect(() => {
