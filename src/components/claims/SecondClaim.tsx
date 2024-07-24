@@ -96,7 +96,7 @@ const SecondClaimCalculations: React.FC = () => {
                 <td className="py-2 px-4 border text-right">{formatNumber(totalInterestBasic)}</td>
               </tr>
               <tr>
-                <td className="py-2 px-4 border">Stały WIBORs</td>
+                <td className="py-2 px-4 border">Stały WIBOR</td>
                 <td className="py-2 px-4 border text-right">{formatNumber(totalInterestSecondClaim)}</td>
               </tr>
               <tr className="bg-gray-50">
