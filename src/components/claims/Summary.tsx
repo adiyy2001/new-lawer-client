@@ -1,19 +1,104 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { AppState } from '../../store/store';
 import MainClaim from './MainClaim';
 import FirstClaim from './FirstClaim';
 import SecondClaim from './SecondClaim';
 import { WiborData } from '../../store/reducers/wiborReducer';
+import FirstClaimCalculator from '../../utils/FirstClaimCalculator';
+import MainClaimCalculator from '../../utils/MainClaimCalculator';
+import SecondClaimCalculator from '../../utils/SecondClaimCalculator';
 
 export const Summary: React.FC = () => {
-    const params = JSON.parse(localStorage.getItem('loanParams') || '');
-    console.log(params)
-    const basicCalulations = useSelector((state: AppState) => state.calculator.results);
-    const mainClaimResults = useSelector((state: AppState) => state.calculator.mainClaimResults);
-    const firstClaimResults = useSelector((state: AppState) => state.calculator.firstClaimResults);
-    const secondClaimResults = useSelector((state: AppState) => state.calculator.secondClaimResults);
+    const [error, setError] = useState<string | null>(null);
+    const params = JSON.parse(localStorage.getItem('loanParams') || 'null');
+    const basicCalculations = useSelector((state: AppState) => state.calculator.results);
     const wiborData = useSelector((state: AppState) => state.wibor.wiborData) as WiborData[];
+
+    useEffect(() => {
+        if (!params || !basicCalculations || !wiborData) {
+            setError('Missing required data');
+        }
+    }, [params, basicCalculations, wiborData]);
+
+    if (error) {
+        return <div className="alert alert-danger">{error}</div>;
+    }
+
+    // Obliczenia używając kalkulatorów
+    const mainClaimCalculator = new MainClaimCalculator(params);
+    const firstClaimCalculator = new FirstClaimCalculator();
+    const secondClaimCalculator = new SecondClaimCalculator(wiborData.slice()); // Upewnij się, że używasz kopii
+
+    let mainClaimResults, firstClaimResults, secondClaimResults;
+    try {
+        mainClaimResults = mainClaimCalculator.calculateInstallments('wibor3m', params);
+        firstClaimResults = firstClaimCalculator.calculateInstallments(params);
+        secondClaimResults = secondClaimCalculator.calculateInstallments('wibor3m', params);
+
+    } catch (err) {
+        setError('Error calculating installments');
+        console.error(err);
+        return null;
+    }
+
+    if (wiborData.length === 0) {
+        setError('WiborData is empty');
+        return null;
+    }
+
+    const latestWiborDate = new Date(wiborData.slice().sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0].date);
+    console.log("Latest WIBOR Date:", latestWiborDate);
+
+    const totalInterestBasicCalc = basicCalculations.reduce((acc, installment) => acc + installment.interest, 0);
+    const totalInterestMainClaimCalc = mainClaimResults.reduce((acc, installment) => acc + installment.interest, 0);
+    const futureInterestBasicCalc = basicCalculations.reduce((acc, installment) => {
+        if (new Date(installment.date) >= latestWiborDate) {
+            return acc + installment.interest;
+        }
+        return acc;
+    }, 0);
+    const futureInterestMainClaimCalc = mainClaimResults.reduce((acc, installment) => {
+        if (new Date(installment.date) >= latestWiborDate) {
+            return acc + installment.interest;
+        }
+        return acc;
+    }, 0);
+    const borrowerBenefitCalc = totalInterestBasicCalc - totalInterestMainClaimCalc;
+
+    const totalInterestFirstClaimCalc = firstClaimResults.reduce((acc, installment) => acc + installment.interest, 0);
+    const refundInterestCalc = totalInterestBasicCalc - totalInterestFirstClaimCalc;
+    const borrowerBenefitFirstClaimCalc = totalInterestBasicCalc - totalInterestFirstClaimCalc;
+    const futureInterestDifferenceCalcFirstClaim = futureInterestBasicCalc - firstClaimResults.reduce((acc, installment) => {
+        if (new Date(installment.date) >= latestWiborDate) {
+            return acc + installment.interest;
+        }
+        return acc;
+    }, 0);
+
+    const totalInterestSecondClaimCalc = secondClaimResults.reduce((acc, installment) => acc + installment.interest, 0);
+    const futureInterestDifferenceCalc = futureInterestBasicCalc - secondClaimResults.reduce((acc, installment) => {
+        if (new Date(installment.date) >= latestWiborDate) {
+            return acc + installment.interest;
+        }
+        return acc;
+    }, 0);
+
+    const calculationsSummary = {
+        totalInterestBasicCalc,
+        totalInterestMainClaimCalc,
+        futureInterestBasicCalc,
+        futureInterestMainClaimCalc,
+        borrowerBenefitCalc,
+        totalInterestFirstClaimCalc,
+        refundInterestCalc,
+        borrowerBenefitFirstClaimCalc,
+        futureInterestDifferenceCalcFirstClaim,
+        totalInterestSecondClaimCalc,
+        futureInterestDifferenceCalc
+    };
+
+    console.log("Calculations Summary:", calculationsSummary);
 
     const handleGenerateExcel = async () => {
         try {
@@ -27,8 +112,9 @@ export const Summary: React.FC = () => {
                     mainClaimResults,
                     firstClaimResults,
                     secondClaimResults,
-                    basicCalulations,
-                    wiborData
+                    basicCalculations,
+                    wiborData,
+                    calculationsSummary,
                 }),
             });
 
@@ -52,6 +138,7 @@ export const Summary: React.FC = () => {
 
     return (
         <div>
+            {error && <div className="alert alert-danger">{error}</div>}
             <MainClaim />
             <FirstClaim />
             <SecondClaim />

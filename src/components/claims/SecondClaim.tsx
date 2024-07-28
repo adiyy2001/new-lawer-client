@@ -58,8 +58,6 @@ const SecondClaimCalculations: React.FC = () => {
         return acc;
       }, 0);
 
-      console.log(interestUpToUnknownWiborDate, interestSecondClaimUpToUnknownWiborDate)
-  
       // Calculate refund interest (difference up to the unknown WIBOR date)
       const refundInterestCalc = interestUpToUnknownWiborDate - interestSecondClaimUpToUnknownWiborDate;
       setRefundInterest(refundInterestCalc);

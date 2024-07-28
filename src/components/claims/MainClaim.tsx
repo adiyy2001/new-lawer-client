@@ -2,31 +2,48 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { AppState } from '../../store/store';
 import { Installment } from '../../types';
+import { WiborData } from '../../store/reducers/wiborReducer';
 
 const MainClaim: React.FC = () => {
   const basicResults = useSelector((state: AppState) => state.calculator.results) as Installment[];
   const mainClaimResults = useSelector((state: AppState) => state.calculator.mainClaimResults) as Installment[];
+  const wiborData = useSelector((state: AppState) => state.wibor.wiborData) as WiborData[];
 
   const [totalInterestBasic, setTotalInterestBasic] = useState(0);
   const [totalInterestMainClaim, setTotalInterestMainClaim] = useState(0);
   const [futureInterestBasic, setFutureInterestBasic] = useState(0);
   const [futureInterestMainClaim, setFutureInterestMainClaim] = useState(0);
-  const [_borrowerBenefit, setBorrowerBenefit] = useState(0);
-  const [unknownWiborDate, _setUnknownWiborDate] = useState<Date | null>(null);
+  const [borrowerBenefit, setBorrowerBenefit] = useState(0);
+  const [latestWiborDate, setLatestWiborDate] = useState<Date | null>(null);
 
   useEffect(() => {
+    if (wiborData.length > 0) {
+      const sortedWiborData = [...wiborData].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      setLatestWiborDate(new Date(sortedWiborData[0].date));
+    }
+  }, [wiborData]);
+
+  useEffect(() => {
+    if (!latestWiborDate) return;
+
     // Calculate total interest for Basic Loan
     const totalInterestBasicCalc = basicResults.reduce((acc, installment) => acc + installment.interest, 0);
     setTotalInterestBasic(totalInterestBasicCalc);
 
-    // Calculate total interest for Main Claim
-    const totalInterestMainClaimCalc = mainClaimResults.reduce((acc, installment) => acc + installment.interest, 0);
+    // Calculate total interest for Main Claim up to the date WIBOR is known
+    const totalInterestMainClaimCalc = mainClaimResults.reduce((acc, installment) => {
+      if (latestWiborDate && new Date(installment.date) <= latestWiborDate) {
+        return acc + installment.interest;
+      }
+      return acc;
+    }, 0);
     setTotalInterestMainClaim(totalInterestMainClaimCalc);
-
 
     // Calculate future interest from the date WIBOR is unknown in Basic Loan
     const futureInterestBasicCalc = basicResults.reduce((acc, installment) => {
-      if (unknownWiborDate && new Date(installment.date) >= new Date(unknownWiborDate)) {
+      if (latestWiborDate && new Date(installment.date) >= latestWiborDate) {
         return acc + installment.interest;
       }
       return acc;
@@ -35,17 +52,17 @@ const MainClaim: React.FC = () => {
 
     // Calculate future interest from the date WIBOR is unknown in Main Claim
     const futureInterestMainClaimCalc = mainClaimResults.reduce((acc, installment) => {
-      if (unknownWiborDate && new Date(installment.date) >= new Date(unknownWiborDate)) {
+      if (latestWiborDate && new Date(installment.date) >= latestWiborDate) {
         return acc + installment.interest;
       }
       return acc;
     }, 0);
     setFutureInterestMainClaim(futureInterestMainClaimCalc);
 
-    // Calculate borrower benefit
-    const borrowerBenefitCalc = totalInterestBasicCalc - totalInterestMainClaimCalc;
-    setBorrowerBenefit(borrowerBenefitCalc);
-  }, [basicResults, mainClaimResults, unknownWiborDate]);
+    // Calculate cancelled future interest
+    const cancelledFutureInterestCalc = futureInterestBasicCalc - futureInterestMainClaimCalc;
+    setBorrowerBenefit(cancelledFutureInterestCalc);
+  }, [basicResults, mainClaimResults, latestWiborDate]);
 
   const formatNumber = (number: number | undefined): string => {
     if (number === undefined) {
@@ -68,7 +85,7 @@ const MainClaim: React.FC = () => {
             </thead>
             <tbody>
               <tr className="bg-gray-50">
-                <td className="py-2 px-4 border">Suma odsetek (Basic Loan)</td>
+                <td className="py-2 px-4 border">WIBOR 3M</td>
                 <td className="py-2 px-4 border text-right">{formatNumber(totalInterestBasic)}</td>
               </tr>
               <tr>
