@@ -13,7 +13,6 @@ const FirstClaimCalculations: React.FC = () => {
   useEffect(() => {
     if (!firstClaimResults.length) {
       navigate('/');
-      return;
     }
 
   }, [location.state, , dispatch, navigate]);

@@ -23,7 +23,6 @@ const BasicLoanCalculations: React.FC = () => {
   useEffect(() => {
     if (!location.state || wiborData.length === 0) {
       navigate('/');
-      return;
     }
 
     const params = location.state.data;

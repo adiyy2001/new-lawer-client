@@ -11,7 +11,6 @@ const MainClaimCalculations: React.FC = () => {
   useEffect(() => {
     if (!mainClaimResults.length) {
       navigate('/');
-      return;
     }})
 
   const formatNumber = (number: number | undefined): string => {
