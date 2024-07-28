@@ -74,7 +74,7 @@ const MainClaim: React.FC = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="calculation-results mt-8">
-        <h2 className="text-xl font-bold mb-4">Wyniki obliczeń Main Claim</h2>
+        <h2 className="text-xl font-bold mb-4">ROSZCZENIE GŁÓWNE: </h2>
         <div className="overflow-auto">
           <table className="min-w-full bg-white border border-gray-300">
             <thead className="bg-gray-200">
@@ -94,7 +94,7 @@ const MainClaim: React.FC = () => {
               </tr>
               <tr className="bg-gray-50">
                 <td className="py-2 px-4 border">Wartość anulowanych odsetek na przyszłość</td>
-                <td className="py-2 px-4 border text-right">{formatNumber(futureInterestBasic - futureInterestMainClaim)}</td>
+                <td className="py-2 px-4 border text-right">{formatNumber(futureInterestBasic )}</td>
               </tr>
               <tr>
                 <td className="py-2 px-4 border">Korzyść Kredytobiorcy</td>

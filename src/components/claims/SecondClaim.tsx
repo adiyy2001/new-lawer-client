@@ -95,7 +95,7 @@ const SecondClaimCalculations: React.FC = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="calculation-results mt-8">
-        <h2 className="text-xl font-bold mb-4">Wyniki obliczeń Second Claim</h2>
+        <h2 className="text-xl font-bold mb-4">II ROSZCZENIE EWENTUALNE: </h2>
         <div className="overflow-auto">
           <table className="min-w-full bg-white border border-gray-300">
             <thead className="bg-gray-200">
