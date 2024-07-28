@@ -112,7 +112,7 @@ export const Summary: React.FC = () => {
 
     const handleGenerateExcel = async () => {
         try {
-            const response = await fetch('https://laywer-calculator-server-production.up.railway.app/api/generate-excel', {
+            const response = await fetch('https://laywer-calculator-server.onrender.com/api/generate-excel', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
