@@ -32,9 +32,7 @@ const App: React.FC = () => {
                   <Route path="/main-claim" element={<MainClaimCalculations />} />
                   <Route path="/first-claim" element={<FirstClaimCalculations />} />
                   <Route path="/second-claim" element={<SecondClaimCalculations />} />
-                  
                   <Route path="/summary" element={<Summary />} />
-
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
