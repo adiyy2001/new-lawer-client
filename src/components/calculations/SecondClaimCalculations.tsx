@@ -7,11 +7,12 @@ import { Installment } from '../../types';
 const SecondClaimCalculations: React.FC = () => {
   const navigate = useNavigate();
   const secondClaimResults = useSelector((state: AppState) => state.calculator.secondClaimResults) as Installment[];
+
   useEffect(() => {
     if (!secondClaimResults.length) {
       navigate('/');
-      return;
-    }})
+    }
+  }, [secondClaimResults, navigate]); // Dodano tablicę zależności
 
   const formatNumber = (number: number | undefined): string => {
     if (number === undefined) {

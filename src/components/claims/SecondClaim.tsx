@@ -38,35 +38,55 @@ const SecondClaimCalculations: React.FC = () => {
     if (lastWiborData) {
       setUnknownWiborDate(new Date(lastWiborData.date));
     }
+  }, [basicResults, secondClaimResults, wiborData]);
 
-    // Calculate refund interest (difference between Basic Loan and Second Claim)
-    const refundInterestCalc = totalInterestBasicCalc - totalInterestSecondClaimCalc;
-    setRefundInterest(refundInterestCalc);
+  useEffect(() => {
+    if (unknownWiborDate && loanEndDate) {
+      // Calculate the total interest up to the unknown WIBOR date for basic results
+      const interestUpToUnknownWiborDate = basicResults.reduce((acc, installment) => {
+        if (new Date(installment.date) < unknownWiborDate) {
+          return acc + installment.interest;
+        }
+        return acc;
+      }, 0);
+  
+      // Calculate the total interest up to the unknown WIBOR date for second claim results
+      const interestSecondClaimUpToUnknownWiborDate = secondClaimResults.reduce((acc, installment) => {
+        if (new Date(installment.date) < unknownWiborDate) {
+          return acc + installment.interest;
+        }
+        return acc;
+      }, 0);
 
-    // Calculate borrower benefit
-    const borrowerBenefitCalc = totalInterestBasicCalc - totalInterestSecondClaimCalc;
-    setBorrowerBenefit(borrowerBenefitCalc);
-
-    // Calculate future interest difference from the specified dates
-    const futureInterestBasic = basicResults.reduce((acc, installment) => {
-      if (unknownWiborDate && new Date(installment.date) >= new Date(unknownWiborDate)) {
-        return acc + installment.interest;
-      }
-      return acc;
-    }, 0);
-
-    const futureInterestSecondClaim = secondClaimResults.reduce((acc, installment) => {
-      if (loanEndDate && new Date(installment.date) >= new Date(loanEndDate)) {
-        return acc + installment.interest;
-      }
-      return acc;
-    }, 0);
-
-    const futureInterestDifferenceCalc = futureInterestBasic - futureInterestSecondClaim;
-    setFutureInterestDifference(futureInterestDifferenceCalc);
-
-  }, [basicResults, secondClaimResults, wiborData, loanEndDate, unknownWiborDate]);
-
+      console.log(interestUpToUnknownWiborDate, interestSecondClaimUpToUnknownWiborDate)
+  
+      // Calculate refund interest (difference up to the unknown WIBOR date)
+      const refundInterestCalc = interestUpToUnknownWiborDate - interestSecondClaimUpToUnknownWiborDate;
+      setRefundInterest(refundInterestCalc);
+  
+      // Calculate borrower benefit as the calculated difference
+      setBorrowerBenefit(refundInterestCalc);
+  
+      // Calculate future interest difference from the specified dates
+      const futureInterestBasic = basicResults.reduce((acc, installment) => {
+        if (new Date(installment.date) >= unknownWiborDate) {
+          return acc + installment.interest;
+        }
+        return acc;
+      }, 0);
+  
+      const futureInterestSecondClaim = secondClaimResults.reduce((acc, installment) => {
+        if (new Date(installment.date) >= loanEndDate) {
+          return acc + installment.interest;
+        }
+        return acc;
+      }, 0);
+  
+      const futureInterestDifferenceCalc = futureInterestBasic - futureInterestSecondClaim;
+      setFutureInterestDifference(futureInterestDifferenceCalc);
+    }
+  }, [unknownWiborDate, loanEndDate, basicResults, secondClaimResults]);
+  
   const formatNumber = (number: number | undefined): string => {
     if (number === undefined) {
       return '0,00';

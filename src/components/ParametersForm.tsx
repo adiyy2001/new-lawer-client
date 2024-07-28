@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -6,6 +6,7 @@ import { AppState } from '../store/store';
 import { TextInput, NumberInput, DateInput, DynamicFieldArray, SelectInput } from './shared/form/components';
 import Spinner from './shared/spinner/Spinner';
 
+const LOCAL_STORAGE_KEY = 'loanParams';
 
 const ParametersForm: React.FC = () => {
   const loading = useSelector((state: AppState) => state.wibor.loading);
@@ -13,6 +14,10 @@ const ParametersForm: React.FC = () => {
   const navigate = useNavigate();
 
   const getDefaultValues = (): any => {
+    const savedParams = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedParams) {
+      return JSON.parse(savedParams);
+    }
     return {
       borrower: 'JAN KOWALSKI',
       loanAmount: 180000,
@@ -30,14 +35,22 @@ const ParametersForm: React.FC = () => {
     };
   };
 
-  const { control, handleSubmit } = useForm<any>({
+  const { control, handleSubmit, reset } = useForm<any>({
     defaultValues: getDefaultValues(),
   });
+
+  useEffect(() => {
+    const savedParams = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (savedParams) {
+      reset(JSON.parse(savedParams));
+    }
+  }, [reset]);
 
   const onSubmit = async (data: any) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
       navigate('/basic-calculations', { state: { data } });
     } finally {
       setIsSubmitting(false);

@@ -1,23 +1,48 @@
-import { BaseCalculationParams, Installment } from '../types';
+import { BaseCalculationParams, Installment } from "../types";
 
 class FirstClaimCalculator {
-
   private static calculatePMT(rate: number, nper: number, pv: number): number {
-    return rate === 0 ? pv / nper : (rate * pv) / (1 - Math.pow(1 + rate, -nper));
+    return rate === 0
+      ? pv / nper
+      : (rate * pv) / (1 - Math.pow(1 + rate, -nper));
   }
 
   private static formatDateOnly(date: Date): string {
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }
 
   public calculateInstallments(params: BaseCalculationParams): Installment[] {
-    const { loanAmount, loanTerms, margin, firstInstallmentDate, gracePeriodMonths, holidayMonths, prepayments, disbursements, installmentType } = params;
+    const {
+      loanAmount,
+      loanTerms,
+      margin,
+      firstInstallmentDate,
+      gracePeriodMonths,
+      holidayMonths,
+      prepayments,
+      disbursements,
+      installmentType,
+    } = params;
 
     let remainingAmount = loanAmount;
     const installments: Installment[] = [];
-    const prepaymentMap = new Map(prepayments.map(p => [FirstClaimCalculator.formatDateOnly(new Date(p.date)), p.amount]));
-    const disbursementMap = new Map(disbursements.map(d => [FirstClaimCalculator.formatDateOnly(new Date(d.date)), d.amount]));
-    const holidayMonthsSet = new Set(holidayMonths.map(h => FirstClaimCalculator.formatDateOnly(new Date(h.date))));
+    const prepaymentMap = new Map(
+      prepayments.map((p) => [
+        FirstClaimCalculator.formatDateOnly(new Date(p.date)),
+        p.amount,
+      ])
+    );
+    const disbursementMap = new Map(
+      disbursements.map((d) => [
+        FirstClaimCalculator.formatDateOnly(new Date(d.date)),
+        d.amount,
+      ])
+    );
+    const holidayMonthsSet = new Set(
+      holidayMonths.map((h) =>
+        FirstClaimCalculator.formatDateOnly(new Date(h.date))
+      )
+    );
 
     for (let i = 0; i < loanTerms; i++) {
       const currentDate = new Date(firstInstallmentDate);
@@ -30,7 +55,7 @@ class FirstClaimCalculator {
           principal: 0,
           interest: 0,
           installment: 0,
-          wiborRate: 0, 
+          wiborRate: 0,
           remainingAmount,
           wiborWithoutMargin: 0,
         });
@@ -44,8 +69,13 @@ class FirstClaimCalculator {
       const interestPayment = (remainingAmount * currentRate) / 12 / 100;
 
       if (i >= gracePeriodMonths) {
-        if (installmentType === 'malejące') {
-          principalPayment = FirstClaimCalculator.calculatePMT(currentRate / 100 / 12, loanTerms - i, remainingAmount) - interestPayment;
+        if (installmentType === "malejące") {
+          principalPayment =
+            FirstClaimCalculator.calculatePMT(
+              currentRate / 100 / 12,
+              loanTerms - i,
+              remainingAmount
+            ) - interestPayment;
         } else {
           principalPayment = remainingAmount / (loanTerms - i);
         }

@@ -11,7 +11,7 @@ const FirstClaimCalculations: React.FC = () => {
 
   const [totalInterestBasic, setTotalInterestBasic] = useState(0);
   const [totalInterestFirstClaim, setTotalInterestFirstClaim] = useState(0);
-  const [_totalInterestMainClaim, setTotalInterestMainClaim] = useState(0);
+  const [totalInterestMainClaim, setTotalInterestMainClaim] = useState(0);
   const [refundInterest, setRefundInterest] = useState(0);
   const [borrowerBenefit, setBorrowerBenefit] = useState(0);
   const [futureInterestDifference, setFutureInterestDifference] = useState(0);
@@ -39,15 +39,19 @@ const FirstClaimCalculations: React.FC = () => {
     if (lastWiborData) {
       setUnknownWiborDate(new Date(lastWiborData.date));
     }
+  }, [basicResults, firstClaimResults, mainClaimResults, wiborData]);
+
+  useEffect(() => {
+    if (!unknownWiborDate) return;
 
     // Calculate refund interest (difference between Basic Loan and First Claim up to the date WIBOR is known)
     const refundInterestCalc = basicResults.reduce((acc, installment) => {
-      if (unknownWiborDate && new Date(installment.date) <= new Date(unknownWiborDate)) {
+      if (new Date(installment.date) <= new Date(unknownWiborDate)) {
         return acc + installment.interest;
       }
       return acc;
     }, 0) - firstClaimResults.reduce((acc, installment) => {
-      if (unknownWiborDate && new Date(installment.date) <= new Date(unknownWiborDate)) {
+      if (new Date(installment.date) <= new Date(unknownWiborDate)) {
         return acc + installment.interest;
       }
       return acc;
@@ -55,19 +59,19 @@ const FirstClaimCalculations: React.FC = () => {
     setRefundInterest(refundInterestCalc);
 
     // Calculate borrower benefit
-    const borrowerBenefitCalc = totalInterestBasicCalc - totalInterestFirstClaimCalc;
+    const borrowerBenefitCalc = totalInterestBasic - totalInterestFirstClaim;
     setBorrowerBenefit(borrowerBenefitCalc);
 
     // Calculate future interest difference from the date WIBOR is unknown
     const futureInterestBasic = basicResults.reduce((acc, installment) => {
-      if (unknownWiborDate && new Date(installment.date) >= new Date(unknownWiborDate)) {
+      if (new Date(installment.date) >= new Date(unknownWiborDate)) {
         return acc + installment.interest;
       }
       return acc;
     }, 0);
 
     const futureInterestFirstClaim = firstClaimResults.reduce((acc, installment) => {
-      if (unknownWiborDate && new Date(installment.date) >= new Date(unknownWiborDate)) {
+      if (new Date(installment.date) >= new Date(unknownWiborDate)) {
         return acc + installment.interest;
       }
       return acc;
@@ -75,8 +79,7 @@ const FirstClaimCalculations: React.FC = () => {
 
     const futureInterestDifferenceCalc = futureInterestBasic - futureInterestFirstClaim;
     setFutureInterestDifference(futureInterestDifferenceCalc);
-
-  }, [basicResults, firstClaimResults, mainClaimResults, wiborData, unknownWiborDate]);
+  }, [basicResults, firstClaimResults, unknownWiborDate, totalInterestBasic, totalInterestFirstClaim]);
 
   const formatNumber = (number: number | undefined): string => {
     if (number === undefined) {
@@ -99,11 +102,11 @@ const FirstClaimCalculations: React.FC = () => {
             </thead>
             <tbody>
               <tr className="bg-gray-50">
-                <td className="py-2 px-4 border">Wibor 3M </td>
+                <td className="py-2 px-4 border">Wibor 3M</td>
                 <td className="py-2 px-4 border text-right">{formatNumber(totalInterestBasic)}</td>
               </tr>
               <tr>
-                <td className="py-2 px-4 border">Bez WIBORU </td>
+                <td className="py-2 px-4 border">Bez WIBORU</td>
                 <td className="py-2 px-4 border text-right">{formatNumber(totalInterestFirstClaim)}</td>
               </tr>
               <tr className="bg-gray-50">

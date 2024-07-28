@@ -12,7 +12,7 @@ const MainClaim: React.FC = () => {
   const [futureInterestBasic, setFutureInterestBasic] = useState(0);
   const [futureInterestMainClaim, setFutureInterestMainClaim] = useState(0);
   const [_borrowerBenefit, setBorrowerBenefit] = useState(0);
-  const [unknownWiborDate, setUnknownWiborDate] = useState<Date | null>(null);
+  const [unknownWiborDate, _setUnknownWiborDate] = useState<Date | null>(null);
 
   useEffect(() => {
     // Calculate total interest for Basic Loan
@@ -23,20 +23,6 @@ const MainClaim: React.FC = () => {
     const totalInterestMainClaimCalc = mainClaimResults.reduce((acc, installment) => acc + installment.interest, 0);
     setTotalInterestMainClaim(totalInterestMainClaimCalc);
 
-    // Find the date from which WIBOR is unknown in Basic Loan
-    const wiborOccurrences: { [key: string]: number } = {};
-    for (const installment of basicResults) {
-      const rateKey = installment.wiborRate.toFixed(2);
-      if (!wiborOccurrences[rateKey]) {
-        wiborOccurrences[rateKey] = 0;
-      }
-      wiborOccurrences[rateKey] += 1;
-
-      if (wiborOccurrences[rateKey] > 6) {
-        setUnknownWiborDate(installment.date);
-        break;
-      }
-    }
 
     // Calculate future interest from the date WIBOR is unknown in Basic Loan
     const futureInterestBasicCalc = basicResults.reduce((acc, installment) => {
