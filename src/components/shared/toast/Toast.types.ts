@@ -1,24 +1,21 @@
-export interface BaseCalculationParams {
-  loanAmount: number;
-  loanTerms: number;
-  margin: number;
-  firstInstallmentDate: string;
-  installmentType: 'stałe' | 'malejące';
+export interface ToastProps {
+  message: string;
+  onClose: () => void;
+  duration?: number;
+  position?: "top-left" | "top-right" | "bottom-left" | "bottom-right";
+  type?: "success" | "error" | "info" | "warning";
+  dismissible?: boolean;
+  customStyles?: React.CSSProperties;
+  customClass?: string;
 }
 
-export interface ExtendedCalculationParams extends BaseCalculationParams {
-  gracePeriodMonths: number;
-  disbursements: { date: string; amount: number }[];
-  prepayments: { date: string; amount: number }[];
-  holidayMonths: { date: string }[];
+export interface ToastContextProps {
+  showToast: (
+    message: string,
+    options?: Omit<ToastProps, "message" | "onClose">
+  ) => void;
 }
 
-export interface Installment {
-  date: Date;
-  principal: number;
-  interest: number;
-  installment: number;
-  remainingAmount: number;
-  wiborRate: number;
-  wiborWithoutMargin: number;
+export interface ToastProviderProps {
+  children: React.ReactNode;
 }

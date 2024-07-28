@@ -1,11 +1,6 @@
 import { createContext, useContext, useState, useCallback } from 'react';
-
-import {
-  ToastProps,
-  ToastContextProps,
-  ToastProviderProps,
-} from './Toast.types';
 import Toast from './Toast';
+import { ToastContextProps, ToastProviderProps, ToastProps } from './Toast.types';
 
 const ToastContext = createContext<ToastContextProps | undefined>(undefined);
 

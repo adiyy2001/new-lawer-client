@@ -11,7 +11,7 @@ const FirstClaimCalculations: React.FC = () => {
 
   const [totalInterestBasic, setTotalInterestBasic] = useState(0);
   const [totalInterestFirstClaim, setTotalInterestFirstClaim] = useState(0);
-  const [totalInterestMainClaim, setTotalInterestMainClaim] = useState(0);
+  const [_totalInterestMainClaim, setTotalInterestMainClaim] = useState(0);
   const [refundInterest, setRefundInterest] = useState(0);
   const [borrowerBenefit, setBorrowerBenefit] = useState(0);
   const [futureInterestDifference, setFutureInterestDifference] = useState(0);
