@@ -17,7 +17,7 @@ const MainClaim: React.FC = () => {
   const [latestWiborDate, setLatestWiborDate] = useState<Date | null>(null);
 
   useEffect(() => {
-    if (wiborData.length > 0) {
+    if (wiborData && wiborData.length > 0) {
       const sortedWiborData = [...wiborData].sort(
         (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
       );

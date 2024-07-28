@@ -21,8 +21,9 @@ const BasicLoanCalculations: React.FC = () => {
   const secondClaimResults = useSelector((state: AppState) => state.calculator.secondClaimResults) as Installment[];
 
   useEffect(() => {
-    if (!location.state || wiborData.length === 0) {
+    if (!location.state || !wiborData) {
       navigate('/');
+      return;
     }
 
     const params = location.state.data;
