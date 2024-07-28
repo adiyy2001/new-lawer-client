@@ -77,12 +77,22 @@ export const Summary: React.FC = () => {
     }, 0);
 
     const totalInterestSecondClaimCalc = secondClaimResults.reduce((acc, installment) => acc + installment.interest, 0);
-    const futureInterestDifferenceCalc = futureInterestBasicCalc - secondClaimResults.reduce((acc, installment) => {
+
+    const futureInterestBasic = basicCalculations.reduce((acc, installment) => {
         if (new Date(installment.date) >= latestWiborDate) {
             return acc + installment.interest;
         }
         return acc;
     }, 0);
+
+    const futureInterestSecondClaim = secondClaimResults.reduce((acc, installment) => {
+        if (new Date(installment.date) >= latestWiborDate) {
+            return acc + installment.interest;
+        }
+        return acc;
+    }, 0);
+
+    const futureInterestDifferenceCalc = futureInterestBasic - futureInterestSecondClaim;
 
     const calculationsSummary = {
         totalInterestBasicCalc,
@@ -102,7 +112,7 @@ export const Summary: React.FC = () => {
 
     const handleGenerateExcel = async () => {
         try {
-            const response = await fetch('http://localhost:3001/api/generate-excel', {
+            const response = await fetch('https://laywer-calculator-server-production.up.railway.app/api/generate-excel', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
