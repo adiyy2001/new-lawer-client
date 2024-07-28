@@ -153,7 +153,7 @@ export const Summary: React.FC = () => {
             <FirstClaim />
             <SecondClaim />
             <button onClick={handleGenerateExcel} className="btn btn-primary mt-4">
-                Generate Excel
+                Wygeneruj plik Excel
             </button>
         </div>
     );
