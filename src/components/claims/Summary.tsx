@@ -8,6 +8,7 @@ import { WiborData } from '../../store/reducers/wiborReducer';
 import FirstClaimCalculator from '../../utils/FirstClaimCalculator';
 import MainClaimCalculator from '../../utils/MainClaimCalculator';
 import SecondClaimCalculator from '../../utils/SecondClaimCalculator';
+import { Installment } from '../../types';
 
 export const Summary: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
@@ -26,15 +27,12 @@ export const Summary: React.FC = () => {
     }
 
     // Obliczenia używając kalkulatorów
-    const mainClaimCalculator = new MainClaimCalculator(params);
-    const firstClaimCalculator = new FirstClaimCalculator();
-    const secondClaimCalculator = new SecondClaimCalculator(wiborData.slice()); // Upewnij się, że używasz kopii
 
     let mainClaimResults, firstClaimResults, secondClaimResults;
     try {
-        mainClaimResults = mainClaimCalculator.calculateInstallments('wibor3m', params);
-        firstClaimResults = firstClaimCalculator.calculateInstallments(params);
-        secondClaimResults = secondClaimCalculator.calculateInstallments('wibor3m', params);
+        mainClaimResults = useSelector((state: AppState) => state.calculator.mainClaimResults) as Installment[];
+        firstClaimResults = useSelector((state: AppState) => state.calculator.firstClaimResults) as Installment[];
+        secondClaimResults = useSelector((state: AppState) => state.calculator.secondClaimResults) as Installment[];
 
     } catch (err) {
         setError('Error calculating installments');
@@ -112,7 +110,8 @@ export const Summary: React.FC = () => {
 
     const handleGenerateExcel = async () => {
         try {
-            const response = await fetch('https://laywer-calculator-server.onrender.com/api/generate-excel', {
+            // const response = await fetch('https://laywer-calculator-server.onrender.com/api/generate-excel', {
+                const response = await fetch('http://localhost:3001/api/generate-excel', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -152,7 +151,7 @@ export const Summary: React.FC = () => {
             <MainClaim />
             <FirstClaim />
             <SecondClaim />
-            <button onClick={handleGenerateExcel} className="btn btn-primary mt-4">
+            <button onClick={handleGenerateExcel} className="btn bg-blue-500 text-white p-2 rounded">
                 Wygeneruj plik Excel
             </button>
         </div>
