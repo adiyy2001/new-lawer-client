@@ -154,22 +154,25 @@ export const Summary: React.FC = () => {
 
   const handleGenerateExcel = async () => {
     try {
-      // const response = await fetch('https://laywer-calculator-server.onrender.com/api/generate-excel', {
-      const response = await fetch("http://localhost:3001/api/generate-excel", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          params,
-          mainClaimResults,
-          firstClaimResults,
-          secondClaimResults,
-          basicCalculations,
-          wiborData,
-          calculationsSummary,
-        }),
-      });
+      const response = await fetch(
+        "https://laywer-calculator-server.onrender.com/api/generate-excel",
+        {
+          //   const response = await fetch("http://localhost:3001/api/generate-excel", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            params,
+            mainClaimResults,
+            firstClaimResults,
+            secondClaimResults,
+            basicCalculations,
+            wiborData,
+            calculationsSummary,
+          }),
+        }
+      );
 
       if (!response.ok) {
         console.error("Failed to generate Excel file");
