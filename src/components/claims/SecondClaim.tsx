@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { AppState } from '../../store/store';
-import { Installment } from '../../types';
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { AppState } from "../../store/store";
+import { Installment } from "../../types";
 
 const SecondClaimCalculations: React.FC = () => {
-  const basicResults = useSelector((state: AppState) => state.calculator.results) as Installment[];
-  const secondClaimResults = useSelector((state: AppState) => state.calculator.secondClaimResults) as Installment[];
+  const basicResults = useSelector(
+    (state: AppState) => state.calculator.results
+  ) as Installment[];
+  const secondClaimResults = useSelector(
+    (state: AppState) => state.calculator.secondClaimResults
+  ) as Installment[];
   const wiborData = useSelector((state: AppState) => state.wibor.wiborData);
 
   const [totalInterestBasic, setTotalInterestBasic] = useState(0);
@@ -18,11 +22,17 @@ const SecondClaimCalculations: React.FC = () => {
 
   useEffect(() => {
     // Calculate total interest for Basic Loan
-    const totalInterestBasicCalc = basicResults.reduce((acc, installment) => acc + installment.interest, 0);
+    const totalInterestBasicCalc = basicResults.reduce(
+      (acc, installment) => acc + installment.interest,
+      0
+    );
     setTotalInterestBasic(totalInterestBasicCalc);
 
     // Calculate total interest for Second Claim
-    const totalInterestSecondClaimCalc = secondClaimResults.reduce((acc, installment) => acc + installment.interest, 0);
+    const totalInterestSecondClaimCalc = secondClaimResults.reduce(
+      (acc, installment) => acc + installment.interest,
+      0
+    );
     setTotalInterestSecondClaim(totalInterestSecondClaimCalc);
 
     // Find the loan end date in Basic Loan
@@ -43,28 +53,35 @@ const SecondClaimCalculations: React.FC = () => {
   useEffect(() => {
     if (unknownWiborDate && loanEndDate) {
       // Calculate the total interest up to the unknown WIBOR date for basic results
-      const interestUpToUnknownWiborDate = basicResults.reduce((acc, installment) => {
-        if (new Date(installment.date) < unknownWiborDate) {
-          return acc + installment.interest;
-        }
-        return acc;
-      }, 0);
-  
+      const interestUpToUnknownWiborDate = basicResults.reduce(
+        (acc, installment) => {
+          if (new Date(installment.date) < unknownWiborDate) {
+            return acc + installment.interest;
+          }
+          return acc;
+        },
+        0
+      );
+
       // Calculate the total interest up to the unknown WIBOR date for second claim results
-      const interestSecondClaimUpToUnknownWiborDate = secondClaimResults.reduce((acc, installment) => {
-        if (new Date(installment.date) < unknownWiborDate) {
-          return acc + installment.interest;
-        }
-        return acc;
-      }, 0);
+      const interestSecondClaimUpToUnknownWiborDate = secondClaimResults.reduce(
+        (acc, installment) => {
+          if (new Date(installment.date) < unknownWiborDate) {
+            return acc + installment.interest;
+          }
+          return acc;
+        },
+        0
+      );
 
       // Calculate refund interest (difference up to the unknown WIBOR date)
-      const refundInterestCalc = interestUpToUnknownWiborDate - interestSecondClaimUpToUnknownWiborDate;
+      const refundInterestCalc =
+        interestUpToUnknownWiborDate - interestSecondClaimUpToUnknownWiborDate;
       setRefundInterest(refundInterestCalc);
-  
+
       // Calculate borrower benefit as the calculated difference
       setBorrowerBenefit(refundInterestCalc);
-  
+
       // Calculate future interest difference from the specified dates
       const futureInterestBasic = basicResults.reduce((acc, installment) => {
         if (new Date(installment.date) >= unknownWiborDate) {
@@ -72,24 +89,31 @@ const SecondClaimCalculations: React.FC = () => {
         }
         return acc;
       }, 0);
-  
-      const futureInterestSecondClaim = secondClaimResults.reduce((acc, installment) => {
-        if (new Date(installment.date) >= loanEndDate) {
-          return acc + installment.interest;
-        }
-        return acc;
-      }, 0);
-  
-      const futureInterestDifferenceCalc = futureInterestBasic - futureInterestSecondClaim;
+
+      const futureInterestSecondClaim = secondClaimResults.reduce(
+        (acc, installment) => {
+          if (new Date(installment.date) >= loanEndDate) {
+            return acc + installment.interest;
+          }
+          return acc;
+        },
+        0
+      );
+
+      const futureInterestDifferenceCalc =
+        futureInterestBasic - futureInterestSecondClaim;
       setFutureInterestDifference(futureInterestDifferenceCalc);
     }
   }, [unknownWiborDate, loanEndDate, basicResults, secondClaimResults]);
-  
+
   const formatNumber = (number: number | undefined): string => {
     if (number === undefined) {
-      return '0,00';
+      return "0,00";
     }
-    return number.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return number.toLocaleString("pl-PL", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   };
 
   return (
@@ -107,23 +131,37 @@ const SecondClaimCalculations: React.FC = () => {
             <tbody>
               <tr className="bg-gray-50">
                 <td className="py-2 px-4 border">Wibor 3M</td>
-                <td className="py-2 px-4 border text-right">{formatNumber(totalInterestBasic)}</td>
+                <td className="py-2 px-4 border text-right">
+                  {formatNumber(totalInterestBasic)}
+                </td>
               </tr>
               <tr>
                 <td className="py-2 px-4 border">Stały WIBOR</td>
-                <td className="py-2 px-4 border text-right">{formatNumber(totalInterestSecondClaim)}</td>
+                <td className="py-2 px-4 border text-right">
+                  {formatNumber(totalInterestSecondClaim)}
+                </td>
               </tr>
               <tr className="bg-gray-50">
-                <td className="py-2 px-4 border">Zwrot do Klienta nadpłaconych odsetek</td>
-                <td className="py-2 px-4 border text-right">{formatNumber(refundInterest)}</td>
+                <td className="py-2 px-4 border">
+                  Zwrot do Klienta nadpłaconych odsetek
+                </td>
+                <td className="py-2 px-4 border text-right">
+                  {formatNumber(refundInterest)}
+                </td>
               </tr>
               <tr>
-                <td className="py-2 px-4 border">Wartość anulowanych odsetek na przyszłość</td>
-                <td className="py-2 px-4 border text-right">{formatNumber(futureInterestDifference)}</td>
+                <td className="py-2 px-4 border">
+                  Wartość anulowanych odsetek na przyszłość
+                </td>
+                <td className="py-2 px-4 border text-right">
+                  {formatNumber(futureInterestDifference)}
+                </td>
               </tr>
               <tr className="bg-gray-50">
                 <td className="py-2 px-4 border">Korzyść Kredytobiorcy</td>
-                <td className="py-2 px-4 border text-right">{formatNumber(borrowerBenefit)}</td>
+                <td className="py-2 px-4 border text-right">
+                  {formatNumber(borrowerBenefit)}
+                </td>
               </tr>
             </tbody>
           </table>
