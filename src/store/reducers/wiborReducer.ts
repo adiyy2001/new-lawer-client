@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface WiborData {
   date: string;
@@ -20,7 +20,7 @@ export const initialState: WiborState = {
 };
 
 const wiborSlice = createSlice({
-  name: 'wibor',
+  name: "wibor",
   initialState,
   reducers: {
     fetchWiborStart(state) {
