@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://laywer-calculator-server.onrender.com/api/$1"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/"
+    }
+  ]
+}
