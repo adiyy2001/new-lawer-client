@@ -10,31 +10,6 @@ class SecondClaimCalculator {
       : (pv * rate) / (1 - Math.pow(1 + rate, -nper));
   }
 
-  private getWiborRate(date: Date, type: "wibor3m" | "wibor6m"): number {
-    if (!this.wiborData.length) return 0;
-
-    const sortedWiborData = [...this.wiborData].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-
-    const lastDateEntry = new Date(
-      sortedWiborData[sortedWiborData.length - 1].date
-    );
-
-    if (date > lastDateEntry) {
-      return sortedWiborData[sortedWiborData.length - 1][type] || 0;
-    }
-
-    const closestDateEntry = sortedWiborData.reduce((prev, curr) =>
-      Math.abs(new Date(curr.date).getTime() - date.getTime()) <
-      Math.abs(new Date(prev.date).getTime() - date.getTime())
-        ? curr
-        : prev
-    );
-
-    return closestDateEntry[type] || 0;
-  }
-
   private static formatDateOnly(date: Date): string {
     return date.toISOString().split("T")[0];
   }
@@ -53,6 +28,7 @@ class SecondClaimCalculator {
       prepayments,
       disbursements,
       installmentType,
+      wiborRate, // Pobieramy stały WIBOR z parametrów
     } = params;
 
     let remainingAmount = loanAmount;
@@ -75,12 +51,9 @@ class SecondClaimCalculator {
       )
     );
 
-    const initialWiborRate = this.getWiborRate(
-      new Date(firstInstallmentDate),
-      type
-    ); // WIBOR na dzień podpisania umowy
-    const currentRate = margin + initialWiborRate;
-    const monthlyRate = currentRate / 12 / 100; // marża + WIBOR podzielone przez 12
+    const fixedWiborRate = wiborRate !== undefined ? wiborRate : 0; // Używamy stałej wartości WIBOR
+    const currentRate = margin + fixedWiborRate;
+    const monthlyRate = currentRate / 12 / 100;
 
     for (let i = 0; i < loanTerms; i++) {
       const currentDate = new Date(firstInstallmentDate);
@@ -102,17 +75,17 @@ class SecondClaimCalculator {
 
       remainingAmount += disbursementMap.get(formattedDate) || 0;
 
-      let principalPayment = 0;
       const interestPayment = remainingAmount * monthlyRate;
+      let principalPayment = 0;
 
       if (i >= gracePeriodMonths) {
-        if (installmentType === "malejące") {
-          principalPayment =
-            SecondClaimCalculator.calculatePMT(
-              monthlyRate,
-              loanTerms - i,
-              remainingAmount
-            ) - interestPayment;
+        if (installmentType === "równe") {
+          const annuityPayment = SecondClaimCalculator.calculatePMT(
+            monthlyRate,
+            loanTerms - i,
+            remainingAmount
+          );
+          principalPayment = annuityPayment - interestPayment;
         } else {
           principalPayment = remainingAmount / (loanTerms - i);
         }
@@ -126,7 +99,7 @@ class SecondClaimCalculator {
         installment: principalPayment + interestPayment,
         wiborRate: currentRate,
         remainingAmount,
-        wiborWithoutMargin: initialWiborRate,
+        wiborWithoutMargin: fixedWiborRate,
       });
 
       const prepaymentAmount = prepaymentMap.get(formattedDate) ?? 0;

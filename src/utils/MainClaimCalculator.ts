@@ -2,34 +2,7 @@ import { WiborData } from "../store/reducers/wiborReducer";
 import { BaseCalculationParams, Installment } from "../types";
 
 class MainClaimCalculator {
-  private unknownWiborDate: Date | null = null;
-
-  constructor(private wiborData: WiborData[]) {
-    if (this.wiborData.length > 0) {
-      const sortedWiborData = [...this.wiborData].sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-      );
-
-      for (let i = 1; i < sortedWiborData.length; i++) {
-        const prevDate = new Date(sortedWiborData[i - 1].date);
-        const currDate = new Date(sortedWiborData[i].date);
-        const diffInMonths =
-          (currDate.getFullYear() - prevDate.getFullYear()) * 12 +
-          (currDate.getMonth() - prevDate.getMonth());
-
-        if (diffInMonths > (sortedWiborData[i].wibor3m ? 3 : 6)) {
-          this.unknownWiborDate = currDate;
-          break;
-        }
-      }
-
-      if (!this.unknownWiborDate) {
-        this.unknownWiborDate = new Date(
-          sortedWiborData[sortedWiborData.length - 1].date
-        );
-      }
-    }
-  }
+  constructor(private wiborData: WiborData[]) {}
 
   private static calculatePMT(rate: number, nper: number, pv: number): number {
     return rate === 0
@@ -38,23 +11,21 @@ class MainClaimCalculator {
   }
 
   private getWiborRate(date: Date, type: "wibor3m" | "wibor6m"): number {
-    if (
-      !this.wiborData.length ||
-      (this.unknownWiborDate && date >= this.unknownWiborDate)
-    )
-      return 0;
+    const freezeDate = new Date("2024-09-07"); // Data zamrożenia WIBOR
+
+    if (date >= freezeDate) {
+      // Zwracamy WIBOR z dnia zamrożenia
+      const freezeWiborRateEntry = this.wiborData.find(
+        (entry) => new Date(entry.date).getTime() === freezeDate.getTime()
+      );
+      return freezeWiborRateEntry ? freezeWiborRateEntry[type] : 0;
+    }
+
+    if (!this.wiborData.length) return 0;
 
     const sortedWiborData = [...this.wiborData].sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
-
-    const lastDateEntry = new Date(
-      sortedWiborData[sortedWiborData.length - 1].date
-    );
-
-    if (date > lastDateEntry) {
-      return sortedWiborData[sortedWiborData.length - 1][type] || 0;
-    }
 
     const closestDateEntry = sortedWiborData.reduce((prev, curr) =>
       Math.abs(new Date(curr.date).getTime() - date.getTime()) <
@@ -106,14 +77,6 @@ class MainClaimCalculator {
       )
     );
 
-    const annuityPayment = MainClaimCalculator.calculatePMT(
-      (margin + this.getWiborRate(new Date(firstInstallmentDate), type)) /
-        100 /
-        12,
-      loanTerms,
-      loanAmount
-    );
-
     for (let i = 0; i < loanTerms; i++) {
       const currentDate = new Date(firstInstallmentDate);
       currentDate.setMonth(currentDate.getMonth() + i);
@@ -134,22 +97,22 @@ class MainClaimCalculator {
 
       remainingAmount += disbursementMap.get(formattedDate) || 0;
 
-      let principalPayment = 0;
       let wiborRate = this.getWiborRate(currentDate, type);
+      const currentRate = margin + wiborRate;
+      const monthlyRate = currentRate / 12 / 100;
 
-      if (i % (type === "wibor3m" ? 3 : 6) === 0) {
-        wiborRate = this.getWiborRate(currentDate, type);
-      }
-
-      const currentRate = wiborRate === 0 ? 0 : margin + wiborRate;
-      const interestPayment = (remainingAmount * currentRate) / 12 / 100;
+      const interestPayment = remainingAmount * monthlyRate;
+      let principalPayment = 0;
 
       if (i >= gracePeriodMonths) {
         if (installmentType === "równe") {
-          // Raty równe (annuitetowe)
+          const annuityPayment = MainClaimCalculator.calculatePMT(
+            monthlyRate,
+            loanTerms - i,
+            remainingAmount
+          );
           principalPayment = annuityPayment - interestPayment;
         } else {
-          // Raty malejące
           principalPayment = remainingAmount / (loanTerms - i);
         }
         remainingAmount -= principalPayment;
@@ -160,7 +123,7 @@ class MainClaimCalculator {
         principal: principalPayment,
         interest: interestPayment,
         installment: principalPayment + interestPayment,
-        wiborRate: wiborRate === 0 ? 0 : currentRate,
+        wiborRate: currentRate,
         remainingAmount,
         wiborWithoutMargin: wiborRate,
       });

@@ -64,18 +64,19 @@ class FirstClaimCalculator {
 
       remainingAmount += disbursementMap.get(formattedDate) || 0;
 
-      let principalPayment = 0;
       const currentRate = margin;
-      const interestPayment = (remainingAmount * currentRate) / 12 / 100;
+      const monthlyRate = currentRate / 12 / 100;
+      const interestPayment = remainingAmount * monthlyRate;
+      let principalPayment = 0;
 
       if (i >= gracePeriodMonths) {
-        if (installmentType === "malejące") {
-          principalPayment =
-            FirstClaimCalculator.calculatePMT(
-              currentRate / 100 / 12,
-              loanTerms - i,
-              remainingAmount
-            ) - interestPayment;
+        if (installmentType === "równe") {
+          const annuityPayment = FirstClaimCalculator.calculatePMT(
+            monthlyRate,
+            loanTerms - i,
+            remainingAmount
+          );
+          principalPayment = annuityPayment - interestPayment;
         } else {
           principalPayment = remainingAmount / (loanTerms - i);
         }

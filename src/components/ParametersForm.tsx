@@ -38,6 +38,7 @@ const ParametersForm: React.FC = () => {
       installmentType: "malejące",
       endDate: new Date("2011-12-19"),
       currentRate: 3.5,
+      wiborRate: 4.30,
     };
   };
 
@@ -126,6 +127,15 @@ const ParametersForm: React.FC = () => {
           rules={{
             required: "Karencja jest wymagana",
             min: { value: 0, message: "Karencja musi być większa niż 0" },
+          }}
+        />
+        <NumberInput
+          label="WIBOR z umowy (%)"
+          control={control}
+          name="wiborRate"
+          rules={{
+            required: "WIBOR z umowy jest wymagany",
+            min: { value: 0.01, message: "WIBOR musi być nieujemny" },
           }}
         />
         <DynamicFieldArray

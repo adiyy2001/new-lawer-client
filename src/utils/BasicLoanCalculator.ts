@@ -30,8 +30,7 @@ class BasicLoanCalculator {
   public calculateInstallments(
     type: "wibor3m" | "wibor6m",
     params: BaseCalculationParams,
-    includeWibor: boolean,
-    isSecondClaim: boolean = false
+    includeWibor: boolean
   ): Installment[] {
     const {
       loanAmount,
@@ -43,34 +42,31 @@ class BasicLoanCalculator {
 
     let remainingAmount = loanAmount;
     const installments: Installment[] = [];
-    const fixedWiborRate = isSecondClaim ? params.wiborRate : 0;
-    let wiborRate = isSecondClaim
-      ? fixedWiborRate
-      : this.getWiborRate(new Date(firstInstallmentDate), type);
 
-    const annuityPayment = BasicLoanCalculator.calculatePMT(
-      (margin + wiborRate) / 100 / 12,
-      loanTerms,
-      loanAmount
-    );
+    let wiborRate = this.getWiborRate(new Date(firstInstallmentDate), type);
 
     for (let i = 0; i < loanTerms; i++) {
       const currentDate = new Date(firstInstallmentDate);
       currentDate.setMonth(currentDate.getMonth() + i);
 
-      if (!isSecondClaim && i % (type === "wibor3m" ? 3 : 6) === 0) {
+      if (i % (type === "wibor3m" ? 3 : 6) === 0) {
         wiborRate = this.getWiborRate(currentDate, type);
       }
 
       const currentRate = includeWibor ? margin + wiborRate : margin;
-      const interestPayment = (remainingAmount * currentRate) / 12 / 100;
+      const monthlyRate = currentRate / 12 / 100;
 
-      let principalPayment;
+      const interestPayment = remainingAmount * monthlyRate;
+      let principalPayment: number;
+
       if (installmentType === "równe") {
-        // Raty równe (annuitetowe)
+        const annuityPayment = BasicLoanCalculator.calculatePMT(
+          monthlyRate,
+          loanTerms - i,
+          remainingAmount
+        );
         principalPayment = annuityPayment - interestPayment;
       } else {
-        // Raty malejące
         principalPayment = loanAmount / loanTerms;
       }
 
@@ -79,7 +75,7 @@ class BasicLoanCalculator {
       remainingAmount -= principalPayment;
 
       installments.push({
-        date: currentDate,
+        date: new Date(currentDate),
         principal: principalPayment,
         interest: interestPayment,
         installment: totalInstallment,
