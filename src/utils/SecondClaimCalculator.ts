@@ -1,8 +1,7 @@
-import { WiborData } from "../store/reducers/wiborReducer";
 import { BaseCalculationParams, Installment } from "../types";
 
 class SecondClaimCalculator {
-  constructor(private wiborData: WiborData[]) {}
+  constructor() {}
 
   private static calculatePMT(rate: number, nper: number, pv: number): number {
     return rate === 0
@@ -15,7 +14,6 @@ class SecondClaimCalculator {
   }
 
   public calculateInstallments(
-    type: "wibor3m" | "wibor6m",
     params: BaseCalculationParams
   ): Installment[] {
     const {
@@ -28,7 +26,7 @@ class SecondClaimCalculator {
       prepayments,
       disbursements,
       installmentType,
-      wiborRate, // Pobieramy stały WIBOR z parametrów
+      wiborRate, 
     } = params;
 
     let remainingAmount = loanAmount;

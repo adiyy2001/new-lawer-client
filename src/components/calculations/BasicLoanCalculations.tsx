@@ -41,8 +41,8 @@ const BasicLoanCalculations: React.FC = () => {
     const firstClaimCalculations = firstClaimCalculator.calculateInstallments(params);
     dispatch(setFirstClaimResults(firstClaimCalculations));
 
-    const secondClaimCalculator = new SecondClaimCalculator(wiborData);
-    const secondClaimCalculations = secondClaimCalculator.calculateInstallments('wibor3m', params);
+    const secondClaimCalculator = new SecondClaimCalculator();
+    const secondClaimCalculations = secondClaimCalculator.calculateInstallments(params);
     dispatch(setSecondClaimResults(secondClaimCalculations));
   }, [location.state, wiborData, dispatch, navigate]);
 
