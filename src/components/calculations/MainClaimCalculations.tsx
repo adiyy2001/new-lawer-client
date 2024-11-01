@@ -17,6 +17,7 @@ const MainClaimCalculations: React.FC = () => {
     if (number === undefined) {
       return "0,00";
     }
+    
     return number.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
