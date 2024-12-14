@@ -44,13 +44,22 @@ class BasicLoanCalculator {
     const installments: Installment[] = [];
 
     let wiborRate = this.getWiborRate(new Date(firstInstallmentDate), type);
+    const today = new Date();
+    let lastKnownWiborRate = 0;
 
     for (let i = 0; i < loanTerms; i++) {
       const currentDate = new Date(firstInstallmentDate);
       currentDate.setMonth(currentDate.getMonth() + i);
 
-      if (i % (type === "wibor3m" ? 3 : 6) === 0) {
-        wiborRate = this.getWiborRate(currentDate, type);
+      if (currentDate > today) {
+        // Use last known WIBOR rate for future installments
+        wiborRate = lastKnownWiborRate;
+      } else {
+        // Update WIBOR rate for past installments
+        if (i % (type === "wibor3m" ? 3 : 6) === 0) {
+          wiborRate = this.getWiborRate(currentDate, type);
+          lastKnownWiborRate = wiborRate;
+        }
       }
 
       const currentRate = includeWibor ? margin + wiborRate : margin;

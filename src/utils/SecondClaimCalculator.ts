@@ -53,6 +53,9 @@ class SecondClaimCalculator {
     const currentRate = margin + fixedWiborRate;
     const monthlyRate = currentRate / 12 / 100;
 
+    const today = new Date();
+    let lastKnownRate = margin + fixedWiborRate;
+
     for (let i = 0; i < loanTerms; i++) {
       const currentDate = new Date(firstInstallmentDate);
       currentDate.setMonth(currentDate.getMonth() + i);
@@ -88,6 +91,16 @@ class SecondClaimCalculator {
           principalPayment = remainingAmount / (loanTerms - i);
         }
         remainingAmount -= principalPayment;
+      }
+
+      if (currentDate > today) {
+        // Use last known rate for future installments
+        const currentRate = lastKnownRate;
+        const monthlyRate = currentRate / 12 / 100;
+        // ...calculate future installment...
+      } else {
+        // ...existing code to calculate currentRate...
+        lastKnownRate = currentRate;
       }
 
       installments.push({

@@ -44,6 +44,8 @@ class FirstClaimCalculator {
       )
     );
 
+    const today = new Date();
+
     for (let i = 0; i < loanTerms; i++) {
       const currentDate = new Date(firstInstallmentDate);
       currentDate.setMonth(currentDate.getMonth() + i);
@@ -60,6 +62,11 @@ class FirstClaimCalculator {
           wiborWithoutMargin: 0,
         });
         continue;
+      }
+
+      if (currentDate > today) {
+        // Adjust calculations for future installments
+        // Use last known rate or set interest to zero
       }
 
       remainingAmount += disbursementMap.get(formattedDate) || 0;

@@ -77,6 +77,9 @@ class MainClaimCalculator {
       )
     );
 
+    const today = new Date();
+    let lastKnownWiborRate = 0;
+
     for (let i = 0; i < loanTerms; i++) {
       const currentDate = new Date(firstInstallmentDate);
       currentDate.setMonth(currentDate.getMonth() + i);
@@ -97,7 +100,16 @@ class MainClaimCalculator {
 
       remainingAmount += disbursementMap.get(formattedDate) || 0;
 
-      let wiborRate = this.getWiborRate(currentDate, type);
+      let wiborRate;
+      if (currentDate > today) {
+        // Use last known WIBOR rate for future installments
+        wiborRate = lastKnownWiborRate;
+      } else {
+        // Update WIBOR rate for past installments
+        wiborRate = this.getWiborRate(currentDate, type);
+        lastKnownWiborRate = wiborRate;
+      }
+
       const currentRate = margin + wiborRate;
       const monthlyRate = currentRate / 12 / 100;
 
