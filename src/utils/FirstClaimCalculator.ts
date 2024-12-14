@@ -45,6 +45,7 @@ class FirstClaimCalculator {
     );
 
     const today = new Date();
+    let lastKnownRate = margin;
 
     for (let i = 0; i < loanTerms; i++) {
       const currentDate = new Date(firstInstallmentDate);
@@ -64,15 +65,22 @@ class FirstClaimCalculator {
         continue;
       }
 
-      if (currentDate > today) {
-        // Adjust calculations for future installments
-        // Use last known rate or set interest to zero
-      }
-
       remainingAmount += disbursementMap.get(formattedDate) || 0;
 
-      const currentRate = margin;
-      const monthlyRate = currentRate / 12 / 100;
+      let currentRate;
+      let monthlyRate;
+
+      if (currentDate > today) {
+        // Use last known rate for future installments
+        currentRate = lastKnownRate;
+        monthlyRate = currentRate / 12 / 100;
+      } else {
+        // For past and current installments
+        currentRate = margin;
+        monthlyRate = currentRate / 12 / 100;
+        lastKnownRate = currentRate;
+      }
+
       const interestPayment = remainingAmount * monthlyRate;
       let principalPayment = 0;
 

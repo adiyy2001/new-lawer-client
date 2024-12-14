@@ -26,7 +26,7 @@ class SecondClaimCalculator {
       prepayments,
       disbursements,
       installmentType,
-      wiborRate, 
+      wiborRate,
     } = params;
 
     let remainingAmount = loanAmount;
@@ -49,10 +49,7 @@ class SecondClaimCalculator {
       )
     );
 
-    const fixedWiborRate = wiborRate !== undefined ? wiborRate : 0; // Używamy stałej wartości WIBOR
-    const currentRate = margin + fixedWiborRate;
-    const monthlyRate = currentRate / 12 / 100;
-
+    const fixedWiborRate = wiborRate !== undefined ? wiborRate : 0;
     const today = new Date();
     let lastKnownRate = margin + fixedWiborRate;
 
@@ -76,6 +73,20 @@ class SecondClaimCalculator {
 
       remainingAmount += disbursementMap.get(formattedDate) || 0;
 
+      let currentRate;
+      let monthlyRate;
+
+      if (currentDate > today) {
+        // Use last known rate for future installments
+        currentRate = lastKnownRate;
+        monthlyRate = currentRate / 12 / 100;
+      } else {
+        // For past and current installments
+        currentRate = margin + fixedWiborRate;
+        monthlyRate = currentRate / 12 / 100;
+        lastKnownRate = currentRate;
+      }
+
       const interestPayment = remainingAmount * monthlyRate;
       let principalPayment = 0;
 
@@ -91,16 +102,6 @@ class SecondClaimCalculator {
           principalPayment = remainingAmount / (loanTerms - i);
         }
         remainingAmount -= principalPayment;
-      }
-
-      if (currentDate > today) {
-        // Use last known rate for future installments
-        const currentRate = lastKnownRate;
-        const monthlyRate = currentRate / 12 / 100;
-        // ...calculate future installment...
-      } else {
-        // ...existing code to calculate currentRate...
-        lastKnownRate = currentRate;
       }
 
       installments.push({

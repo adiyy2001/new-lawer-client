@@ -11,10 +11,9 @@ class MainClaimCalculator {
   }
 
   private getWiborRate(date: Date, type: "wibor3m" | "wibor6m"): number {
-    const freezeDate = new Date("2024-09-07"); // Data zamrożenia WIBOR
+    const freezeDate = new Date("2024-09-07");
 
     if (date >= freezeDate) {
-      // Zwracamy WIBOR z dnia zamrożenia
       const freezeWiborRateEntry = this.wiborData.find(
         (entry) => new Date(entry.date).getTime() === freezeDate.getTime()
       );
@@ -102,10 +101,8 @@ class MainClaimCalculator {
 
       let wiborRate;
       if (currentDate > today) {
-        // Use last known WIBOR rate for future installments
         wiborRate = lastKnownWiborRate;
       } else {
-        // Update WIBOR rate for past installments
         wiborRate = this.getWiborRate(currentDate, type);
         lastKnownWiborRate = wiborRate;
       }

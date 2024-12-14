@@ -43,9 +43,9 @@ class BasicLoanCalculator {
     let remainingAmount = loanAmount;
     const installments: Installment[] = [];
 
-    let wiborRate = this.getWiborRate(new Date(firstInstallmentDate), type);
     const today = new Date();
     let lastKnownWiborRate = 0;
+    let wiborRate = this.getWiborRate(new Date(firstInstallmentDate), type);
 
     for (let i = 0; i < loanTerms; i++) {
       const currentDate = new Date(firstInstallmentDate);
@@ -76,7 +76,7 @@ class BasicLoanCalculator {
         );
         principalPayment = annuityPayment - interestPayment;
       } else {
-        principalPayment = loanAmount / loanTerms;
+        principalPayment = remainingAmount / (loanTerms - i);
       }
 
       const totalInstallment = principalPayment + interestPayment;
